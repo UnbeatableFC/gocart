@@ -4,6 +4,7 @@ import Loading from "@/components/Loading";
 import { orderDummyData } from "@/assets/assets";
 import { useAuth } from "@clerk/nextjs";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 export default function StoreOrders() {
   const { getToken } = useAuth();
@@ -34,7 +35,7 @@ export default function StoreOrders() {
     try {
       const token = await getToken();
       await axios.post(
-        "/api/store/order",
+        "/api/store/orders",
         { orderId, status },
         {
           headers: {
