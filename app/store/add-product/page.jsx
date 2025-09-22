@@ -1,10 +1,13 @@
 "use client";
 import { assets } from "@/assets/assets";
+import { useAuth } from "@clerk/nextjs";
+import axios from "axios";
 import Image from "next/image";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 
 export default function StoreAddProduct() {
+  const { getToken } = useAuth();
   const categories = [
     "Electronics",
     "Clothing",
@@ -43,6 +46,52 @@ export default function StoreAddProduct() {
   const onSubmitHandler = async (e) => {
     e.preventDefault();
     // Logic to add a product
+    try {
+      // if no images are uploaded ,return
+      if (!images[1] && !images[2] && !images[3] && !images[4]) {
+        return toast.error("Please upload at least one immage");
+      }
+      setLoading(true);
+
+      const formData = new FormData();
+      formData.append("name", productInfo.name);
+      formData.append("description", productInfo.description);
+      formData.append("mrp", productInfo.mrp);
+      formData.append("price", productInfo.price);
+      formData.append("category", productInfo.category);
+
+      // Adding images to form data
+
+      Object.keys(images).forEach((key) => {
+        images[key] && formData.append("images", images[key]);
+      });
+      const token = await getToken();
+      const { data } = await axios.post(
+        "/api/store/product",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      toast.success(data.message);
+
+      // Reset form and images
+      setProductInfo({
+        name: "",
+        description: "",
+        mrp: 0,
+        price: 0,
+        category: "",
+      });
+      setImages({ 1: null, 2: null, 3: null, 4: null });
+    } catch (error) {
+      console.log(error);
+      toast.error(error?.response?.data?.error || error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
